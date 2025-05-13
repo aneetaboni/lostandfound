@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Register | Lost & Found App</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <nav>
+        <div class="nav-wrapper blue">
+            <a href="#" class="brand-logo center">Lost & Found Portal</a>
+        </div>
+    </nav>
+
+    <div class="container center-form">
+        <div class="card-panel z-depth-3">
+            <img src="img.webp" alt="Lost & Found Logo" class="responsive-img center-align"
+                style="max-height: 60px; margin-bottom: 20px;">
+            <h5 class="center-align">Register an Account</h5>
+            <form id="registerForm">
+                <div class="input-field">
+                    <input type="text" id="name" required>
+                    <label for="name">Full Name</label>
+                </div>
+                <div class="input-field">
+                    <input type="email" id="email" required>
+                    <label for="email">Email</label>
+                </div>
+                <div class="input-field">
+                    <input type="password" id="password" required>
+                    <label for="password">Password</label>
+                </div>
+                <button class="btn blue waves-effect waves-light" type="submit">
+                    <i class="material-icons left">person_add</i> Register
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const res = await fetch('http://localhost:5000/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: document.getElementById('name').value,
+                    email: document.getElementById('email').value,
+                    password: document.getElementById('password').value
+                })
+            });
+
+            const data = await res.json();
+            M.toast({ html: data.message || "Registered successfully!", classes: 'green rounded' });
+        });
+    </script>
+
+</body>
+
+</html>
