@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Report Found Item</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <h4>Report a Found Item</h4><br>
+    <form id="foundForm">
+      <div class="input-field">
+        <input type="text" id="name" required>
+        <label for="name" class="active">Item Title</label>
+      </div>
+      <div class="input-field">
+        <input type="text" id="model" required>
+        <label for="model" class="active">Description</label>
+      </div>
+      <div class="input-field">
+        <input type="text" id="color" required>
+        <label for="color" class="active">Color</label>
+      </div>
+      <div class="input-field">
+        <input type="text" id="locationFound" required>
+        <label for="locationFound" class="active">Location</label>
+      </div>
+      <div class="input-field">
+        <input type="date" id="dateFound" required>
+        <label for="dateFound" class="active">Date Found</label>
+      </div>
+      <button class="btn green" type="submit">Submit</button>
+    </form>    
+  </div>
+
+  <!-- ✅ Materialize JS (required for M.toast) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+  <script>
+    document.getElementById("foundForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        M.toast({ html: "You must be logged in.", classes: "red rounded" });
+        return;
+      }
+
+      const res = await fetch("http://localhost:5000/api/found", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: document.getElementById("name").value,
+          model: document.getElementById("model").value,
+          color: document.getElementById("color").value,
+          locationFound: document.getElementById("locationFound").value,
+          dateFound: document.getElementById("dateFound").value
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        M.toast({ html: "Found item reported!", classes: "green rounded" });
+        document.getElementById("foundForm").reset();
+      } else {
+        M.toast({ html: data.error || "Failed to report found item", classes: "red rounded" });
+      }
+    });
+  </script>
+</body>
+</html>

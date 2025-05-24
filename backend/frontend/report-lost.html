@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Report a Lost Item</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    .container {
+      margin-top: 50px;
+      max-width: 600px;
+    }
+    .btn {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h4>Report a Lost Item</h4>
+
+    <form id="lostForm">
+      <div class="input-field">
+        <input id="name" type="text" required>
+        <label for="name">Item Title</label>
+      </div>
+      <div class="input-field">
+        <input id="model" type="text" required>
+        <label for="model">Description</label>
+      </div>
+      <div class="input-field">
+        <input id="color" type="text" required>
+        <label for="color">Color</label>
+      </div>
+      <div class="input-field">
+        <input id="locationLost" type="text" required>
+        <label for="locationLost">Location</label>
+      </div>
+      <div class="input-field">
+        <input type="date" id="dateLost" required>
+        <label for="dateLost">Date Lost</label>
+      </div>
+      <button type="submit" class="btn-large blue waves-effect waves-light">Submit</button>
+    </form>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      M.updateTextFields();
+    });
+
+    document.getElementById("lostForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const token = localStorage.getItem("token");
+      if (!token) return alert("You must be logged in.");
+
+      const itemData = {
+        name: document.getElementById("name").value,
+        model: document.getElementById("model").value,
+        color: document.getElementById("color").value,
+        locationLost: document.getElementById("locationLost").value,
+        dateLost: document.getElementById("dateLost").value
+      };
+
+      try {
+        const res = await fetch("http://localhost:5000/api/lost", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`  // ✅ Fixed quotes
+          },
+          body: JSON.stringify(itemData)
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          M.toast({ html: "Lost item reported!", classes: "green rounded" });
+          document.getElementById("lostForm").reset();
+        } else {
+          M.toast({ html: data.error || "Failed", classes: "red rounded" });
+        }
+      } catch (err) {
+        console.error(err);
+        M.toast({ html: "Server error", classes: "red rounded" });
+      }
+      });
+  </script>
+</body>
+</html>

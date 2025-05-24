@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dashboard | Lost & Found</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    .btn {
+      margin: 10px 5px;
+    }
+    .logout-btn {
+      margin-right: 20px;
+    }
+    .card-panel {
+      text-align: left;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav>
+    <div class="nav-wrapper blue">
+      <a href="#" class="brand-logo center">Lost & Found Dashboard</a>
+      <ul id="nav-mobile" class="right">
+        <li><a href="#" class="logout-btn" onclick="logout()"><i class="material-icons left">exit_to_app</i>Logout</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container">
+    <h4 class="center-align">Welcome!</h4>
+
+    <!-- Lost Item Search -->
+    <div class="input-field">
+      <input type="text" id="searchInput" placeholder="Search lost items...">
+      <label for="searchInput">Search Lost Items</label>
+    </div>
+    <div id="lostResults"></div>
+
+    <!-- Found Item Search -->
+    <div class="input-field">
+      <input type="text" id="foundSearch" placeholder="Search found items...">
+      <label for="foundSearch">Search Found Items</label>
+    </div>
+    <div id="foundResults"></div>
+
+    <!-- Navigation Buttons -->
+    <div class="section center-align">
+      <a href="report-lost.html" class="btn blue waves-effect">Report Lost Item</a>
+      <a href="report-found.html" class="btn green waves-effect">Report Found Item</a>
+      <a href="anonymous-chat.html" class="btn orange waves-effect">Join Chat</a>
+      <a href="admin-panel.html" id="adminBtn" class="btn red waves-effect">Admin Panel</a>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <script>
+    function logout() {
+      localStorage.removeItem("token");
+      M.toast({ html: "Logged out", classes: "blue lighten-1 rounded" });
+      setTimeout(() => window.location.href = "login.html", 1000);
+    }
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      M.toast({ html: "You must log in first.", classes: "red rounded" });
+      setTimeout(() => window.location.href = "login.html", 1500);
+    } else {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.role !== "admin") {
+          document.getElementById("adminBtn").style.display = "none";
+        }
+      } catch (e) {
+        M.toast({ html: "Invalid session. Please log in again.", classes: "red rounded" });
+        setTimeout(() => logout(), 1500);
+      }
+    }
+
+    // Search Lost Items
+    document.getElementById("searchInput").addEventListener("input", async function () {
+      const query = this.value.trim();
+      const resultsDiv = document.getElementById("lostResults");
+
+      if (query.length < 2) {
+        resultsDiv.innerHTML = "";
+        return;
+      }
+
+      try {
+        const res = await fetch(`http://localhost:5000/api/lost/search?q=${encodeURIComponent(query)}`);
+        const data = await res.json();
+
+        if (Array.isArray(data) && data.length > 0) {
+          resultsDiv.innerHTML = data.map(item => `
+            <div class="card-panel">
+              <strong>${item.name}</strong>
+              <p>${item.model}</p>
+              <small><i>Location: ${item.locationLost}</i> | <i>Date: ${new Date(item.dateLost).toLocaleDateString()}</i></small>
+            </div>
+          `).join('');
+        } else {
+          resultsDiv.innerHTML = `<p class="red-text">No lost items found.</p>`;
+        }
+      } catch (err) {
+        console.error("Lost search error:", err);
+        resultsDiv.innerHTML = `<p class="red-text">Server error while searching lost items.</p>`;
+      }
+    });
+
+    // Search Found Items
+    document.getElementById("foundSearch").addEventListener("input", async function () {
+      const query = this.value.trim();
+      const resultsDiv = document.getElementById("foundResults");
+
+      if (query.length < 2) {
+        resultsDiv.innerHTML = "";
+        return;
+      }
+
+      try {
+        const res = await fetch(`http://localhost:5000/api/found/search?q=${encodeURIComponent(query)}`);
+        const data = await res.json();
+
+        if (Array.isArray(data) && data.length > 0) {
+          resultsDiv.innerHTML = data.map(item => `
+            <div class="card-panel">
+              <strong>${item.name}</strong>
+              <p>${item.model}</p>
+              <small><i>Location: ${item.locationFound}</i> | <i>Date: ${new Date(item.dateFound).toLocaleDateString()}</i></small>
+            </div>
+          `).join('');
+        } else {
+          resultsDiv.innerHTML = `<p class="red-text">No found items found.</p>`;
+        }
+      } catch (err) {
+        console.error("Found search error:", err);
+        resultsDiv.innerHTML = `<p class="red-text">Server error while searching found items.</p>`;
+      }
+    });
+  </script>
+</body>
+</html>
